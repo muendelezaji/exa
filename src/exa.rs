@@ -2,6 +2,7 @@
 #![warn(unused_results)]
 
 extern crate ansi_term;
+extern crate chrono;
 extern crate datetime;
 extern crate glob;
 extern crate libc;
@@ -11,6 +12,7 @@ extern crate num_cpus;
 extern crate number_prefix;
 extern crate scoped_threadpool;
 extern crate term_grid;
+extern crate time;
 extern crate unicode_width;
 extern crate users;
 extern crate zoneinfo_compiled;

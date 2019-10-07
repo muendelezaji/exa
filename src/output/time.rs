@@ -2,6 +2,7 @@
 
 use std::time::Duration;
 
+use chrono::prelude::*;
 use datetime::{LocalDateTime, TimeZone, DatePiece, TimePiece};
 use datetime::fmt::DateFormat;
 use locale;
@@ -45,6 +46,12 @@ pub enum TimeFormat {
     /// millisecond and includes its offset down to the minute. This too uses
     /// only numbers so doesn’t require any special consideration.
     FullISO,
+
+    /// Parsed using **GNU ls** time style custom formats which use **GNU date**
+    /// format arguments. See more at:
+    /// https://www.gnu.org/software/coreutils/manual/html_node/Formatting-file-timestamps.html
+    /// and https://github.com/coreutils/coreutils/blob/master/src/ls.c
+    Custom(CustomFormat),
 }
 
 // There are two different formatting functions because local and zoned
@@ -57,6 +64,7 @@ impl TimeFormat {
             TimeFormat::ISOFormat(ref iso)     => iso.format_local(time),
             TimeFormat::LongISO                => long_local(time),
             TimeFormat::FullISO                => full_local(time),
+            TimeFormat::Custom(ref fmt)        => fmt.format_custom(time),
         }
     }
 
@@ -66,6 +74,7 @@ impl TimeFormat {
             TimeFormat::ISOFormat(ref iso)     => iso.format_zoned(time, zone),
             TimeFormat::LongISO                => long_zoned(time, zone),
             TimeFormat::FullISO                => full_zoned(time, zone),
+            TimeFormat::Custom(ref fmt)        => fmt.format_custom(time),
         }
     }
 }
@@ -241,5 +250,29 @@ impl ISOFormat {
             format!("{:04}-{:02}-{:02}",
                     date.year(), date.month() as usize, date.day())
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CustomFormat {
+    pub format: String,
+}
+
+impl CustomFormat {
+    // e.g. %Y-%m-%d %H:%M:%S
+    pub fn load(format: String) -> CustomFormat {
+        CustomFormat { format }
+    }
+}
+
+impl CustomFormat {
+
+    #[allow(trivial_numeric_casts)]
+    fn format_custom(&self, time: Duration) -> String {
+        use chrono::TimeZone;
+
+        // let date = LocalDateTime::at(time.as_secs() as i64);
+        let dt = Local.timestamp(time.as_secs() as i64, time.subsec_nanos());
+        format!("{}", dt.format(&self.format).to_string())
     }
 }

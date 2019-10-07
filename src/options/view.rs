@@ -257,8 +257,9 @@ impl TimeFormat {
 
     /// Determine how time should be formatted in timestamp columns.
     fn deduce<V: Vars>(matches: &MatchedFlags, vars: &V) -> Result<TimeFormat, Misfire> {
-        pub use output::time::{DefaultFormat, ISOFormat};
+        pub use output::time::{DefaultFormat, ISOFormat, CustomFormat};
 
+/*
         let word = match matches.get(&flags::TIME_STYLE)? {
             Some(w) => w.to_os_string(),
             None    => {
@@ -269,17 +270,30 @@ impl TimeFormat {
                 }
             },
         };
+*/
 
-        if &word == "default" {
+        let word = match matches.get(&flags::TIME_STYLE)? {
+            Some(w) => w,
+            None    => {
+                // If TIME_STYLE environment is set, attempt to print using ls-like behaviour
+                use options::vars;
+                match vars.get(vars::TIME_STYLE).and_then(|s| s.into_string().ok()) {
+                    Some(t) => return Ok(TimeFormat::Custom(CustomFormat::load(t.replacen("+", "", 1)))),
+                    _       => return Ok(TimeFormat::DefaultFormat(DefaultFormat::load())),
+                }
+            },
+        };
+
+        if word == "default" {
             Ok(TimeFormat::DefaultFormat(DefaultFormat::load()))
         }
-        else if &word == "iso" {
+        else if word == "iso" {
             Ok(TimeFormat::ISOFormat(ISOFormat::load()))
         }
-        else if &word == "long-iso" {
+        else if word == "long-iso" {
             Ok(TimeFormat::LongISO)
         }
-        else if &word == "full-iso" {
+        else if word == "full-iso" {
             Ok(TimeFormat::FullISO)
         }
         else {
