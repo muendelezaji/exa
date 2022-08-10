@@ -46,6 +46,11 @@ pub enum TimeFormat {
     /// millisecond and includes its offset down to the minute. This too uses
     /// only numbers so doesn’t require any special consideration.
     FullISO,
+
+    /// Use a custom time format as supported in the Linux `date` command.
+    /// Anything in the +FORMAT (e.g., +%H:%M, %F_%T)
+    /// See 'ls --help' for more information.
+    CustomFormat,
 }
 
 // There are two different formatting functions because local and zoned
@@ -58,6 +63,7 @@ impl TimeFormat {
             Self::ISOFormat      => iso_local(time),
             Self::LongISO        => long_local(time),
             Self::FullISO        => full_local(time),
+            Self::CustomFormat   => custom_local(time),
         }
     }
 
@@ -67,6 +73,7 @@ impl TimeFormat {
             Self::ISOFormat      => iso_zoned(time, zone),
             Self::LongISO        => long_zoned(time, zone),
             Self::FullISO        => full_zoned(time, zone),
+            Self::CustomFormat   => custom_zoned(time),
         }
     }
 }

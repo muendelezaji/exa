@@ -247,9 +247,11 @@ impl TimeFormat {
                 w.to_os_string()
             }
             else {
+                // If TIME_STYLE environment is set, try to mimic using ls-like behaviour
                 use crate::options::vars;
                 match vars.get(vars::TIME_STYLE) {
-                    Some(ref t) if ! t.is_empty()  => t.clone(),
+                    // Some(ref t) if ! t.is_empty()  => t.clone(),
+                    Some(ref t) if ! t.is_empty()  => return Ok(Self::CustomFormat),
                     _                              => return Ok(Self::DefaultFormat)
                 }
             };
